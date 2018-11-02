@@ -1,7 +1,5 @@
 "use strict";
 
-// lodash
-import _ from 'lodash/array';
 import fs from 'fs';
 import logger from "../helpers/log";
 
@@ -47,18 +45,12 @@ export const getRandomMotion = (sound) => {
 
 /**
  * Sauvegarde le tweet courant.
- * Un contrôle est effectué pour ne pas enregistrer
- * 2 tweets identique.
  */
 export const saveTweet = (tweet) => {
   if (tweet.fresh) {
     let configFile = fs.readFileSync(Configuration.TWEETS_DB);
     let config = JSON.parse(configFile);
-    if (_.findIndex(config, function (o) {
-      return o == tweet;
-    }) == -1) {
-      config.push(tweet);
-    }
+    config.push(tweet);
     let configJSON = JSON.stringify(config);
     logger.log('info', 'Sauvegarde du tweet courant');
     fs.writeFileSync(Configuration.TWEETS_DB, configJSON);

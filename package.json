@@ -18,7 +18,6 @@
     "jasmine": "^3.2.0",
     "jasmine-core": "^3.2.1",
     "jasmine-spec-reporter": "^4.2.1",
-    "lodash": "^4.16.6",
     "webpack": "^4.16.5",
     "webpack-cli": "^3.1.0"
   },
@@ -31,6 +30,7 @@
     "stats": "webpack --env production --profile --json > stats.json",
     "forever": "forever",
     "prestart2": "webpack --display-error-details",
-    "start": "pm2 start ./dist/app.js"
+    "start": "pm2 start ./dist/app.js",
+    "lea-brain": "webpack --display-error-details && node ./dist/app.js"
   }
 }
