@@ -34,51 +34,61 @@ let clientMqtt = mqtt.connect('ws://localhost:3001', {
   clientId: 'lea_brain_' + os.hostname()
 });
 
-// Connexion au broker
-clientMqtt.on('connect', function () {
-  logger.log('debug', "client connecté pour recevoir des messages de twitter");
-  clientMqtt.subscribe(UI_CHANNEL);
-  clientMqtt.subscribe(TWITTER_CHANNEL);
-  clientMqtt.subscribe(ARDUINO_CHANNEL);
-});
+clientMqtt.on("connect", connection);
+clientMqtt.on("message", onMessageReceived);
 
-clientMqtt.on('message', function (topic, strPayload) {
-  
-  
-  if (topic == TWITTER_CHANNEL) {
-    logger.log('debug', "On reçoit un tweet de TWITTER");
-    messageFromTwitter(JSON.parse(strPayload.toString()));
-  } else if (topic == ARDUINO_CHANNEL) {
-    logger.log('debug', "On reçoit un message de l'ARDUINO");
-    messageFromArduino(JSON.parse(strPayload.toString()))
-  } else {
-    logger.log('debug', "On reçoit un tweet de UI");
-    messageFromUI(strPayload.toString());
-  }
-});
+// Connexion au broker
+function connection() {
+
+	console.log("Starting");
+	try {
+    logger.log('debug', "client connecté pour recevoir des messages de twitter");
+    clientMqtt.subscribe(UI_CHANNEL);
+    clientMqtt.subscribe(TWITTER_CHANNEL);
+    clientMqtt.subscribe(ARDUINO_CHANNEL);
+  } catch (e){
+		// Do something about it!
+		console.log(e.stack);
+		process.exit();
+	}
+}
+
+function onMessageReceived(topic, strPayload) {
+
+	console.log("Starting");
+	try {
+    if (topic == TWITTER_CHANNEL) {
+      logger.log('debug', "On reçoit un tweet de TWITTER");
+      messageFromTwitter(JSON.parse(strPayload.toString()));
+    } else if (topic == ARDUINO_CHANNEL) {
+      logger.log('debug', "On reçoit un message de l'ARDUINO");
+      messageFromArduino(JSON.parse(strPayload.toString()))
+    } else {
+      logger.log('debug', "On reçoit un tweet de UI");
+      messageFromUI(strPayload.toString());
+    }
+  } catch (e){
+		// Do something about it!
+		console.log(e.stack);
+		process.exit();
+	}
+}
 
 function messageFromTwitter(tweet) {
   //let tweet = payload.tweet;
 
   // Configuration et stockage d'un tweet récemment reçu
   logger.log('info', "Ajout du nouveau tweet dans la file d'attente...");
-  context.freshTweets.push(tweet);
-
-
-
   tweet.motion = Utils.getRandomMotion(tweet.sound);
   logger.log('debug', 'Le tweet à afficher : ');
   logger.log('debug', tweet);
 
-  
-  if (!context.isTweetDisplayed) {
-    logger.log('info', "Demande au worker Arduino d'afficher le tweet");
-    context.tweetDisplayed = tweet;
-    context.isTweetDisplayed = true;
-    //clientMqtt.publish('lea/brain/arduino', JSON.stringify(tweet));
-    logger.log('info', JSON.stringify(tweet));
-    clientMqtt.publish('lea/brain/arduino', JSON.stringify(tweet));
-  }
+  logger.log('info', "Demande au worker Arduino d'afficher le tweet");
+  context.tweetDisplayed = tweet;
+  context.isTweetDisplayed = true;
+  //clientMqtt.publish('lea/brain/arduino', JSON.stringify(tweet));
+  logger.log('info', JSON.stringify(tweet));
+  clientMqtt.publish('lea/brain/arduino', JSON.stringify(tweet));
 
 }
 
@@ -102,23 +112,23 @@ function messageFromArduino(message) {
           .push(tweet);
       }
       // Suppression du tweet frais
-      context.freshTweets = context.freshTweets.filter(function(currentObject, index, arr){
+/*      context.freshTweets = context.freshTweets.filter(function(currentObject, index, arr){
         return currentObject.userName != tweet.userName && currentObject.screenName != tweet.screenName && currentObject.text != tweet.text;;
-      });
-     /* _
-        .remove(context.freshTweets, function (currentObject) {
-          return currentObject.userName === tweet.userName && currentObject.screenName === tweet.screenName && currentObject.text === tweet.text;
-        });*/
+      });*/
     }
 
-      // Si des tweets plus récent sont apparu, on les affiche
-      if (context.freshTweets.length > 0) {
-        let freshTweet = context.freshTweets[0];
-        if (!context.isTweetDisplayed && context.tweetDisplayed != freshTweet) {
-          context.isTweetDisplayed = true;
-          clientMqtt.publish('lea/brain/arduino', JSON.stringify(freshTweet));
-        }
+    // Si des tweets plus récent sont apparu, on les affiche
+/*    logger.log('info', 'context.freshTweets.length %s', context.freshTweets.length);
+    logger.log('info', 'context.freshTweets.length %d', context.freshTweets.length);
+    logger.log('info', context.freshTweets.length);
+    if (context.freshTweets.length > 0) {
+      logger.log('info', JSON.stringify(tweet));
+      let freshTweet = context.freshTweets[0];
+      if (!context.isTweetDisplayed && context.tweetDisplayed != freshTweet) {
+        context.isTweetDisplayed = true;
+        clientMqtt.publish('lea/brain/arduino', JSON.stringify(freshTweet));
       }
+    }*/
 
     if (!context.isTweetDisplayed) {
       // Si la liste des tweets historique est plus grande, le progamme la tronque
