@@ -23,14 +23,9 @@
   },
   "scripts": {
     "test": "webpack --display-error-details && babel-node spec/jasmine-runner",
-    "prod": "forever stopall && webpack --mode=production && forever start ./dist/app.js",
-    "dev": "webpack --mode=development && forever start ./dist/app.js",
-    "express": "forever stopall && forever start ./dist/app.js",
+    "prod": "webpack --mode=production && node ./dist/app.js",
+    "dev": "webpack --mode=development && node ./dist/app.js",
     "build": "webpack --display-error-details",
-    "stats": "webpack --env production --profile --json > stats.json",
-    "forever": "forever",
-    "prestart2": "webpack --display-error-details",
-    "start": "pm2 start ./dist/app.js",
-    "lea-brain": "webpack --display-error-details && node ./dist/app.js"
+    "stats": "webpack --env production --profile --json > stats.json"
   }
 }
