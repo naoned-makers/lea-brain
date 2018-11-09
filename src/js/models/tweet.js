@@ -1,3 +1,4 @@
+import Configuration from "../config/configuration";
 export default class Tweet {
 
   	constructor(userName, screenName, text) {
@@ -13,7 +14,7 @@ export default class Tweet {
   	}
 
 	getTweet() {
-		if (this.screenName != '') {
+		if (this.screenName != '' && this.screenName != Configuration.USER_TWITTER) {
 			return "@" + this.replaceAccent(this.screenName) + " : " + this.replaceAccent(this.text);
 		} else {
 			return this.replaceAccent(this.text);
