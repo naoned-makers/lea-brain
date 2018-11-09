@@ -46,6 +46,21 @@ let clientMqtt = mqtt.connect('ws://lea.local:3001', {
 clientMqtt.on("connect", connection);
 clientMqtt.on("message", onMessageReceived);
 
+// Connexion au broker de Neo
+let clientMqttNeo = mqtt.connect('mqtt://192.168.0.163:1883', {
+  clientId: 'lea_broker_' + os.hostname()
+});
+clientMqttNeo.on("connect", connectionNeo);
+
+// Connexion effective au broker de Neo
+function connectionNeo() {
+  console.log("Connexion au broker iron-man OK");
+}
+
+
+
+
+
 // Connexion au broker
 function connection() {
 
@@ -67,7 +82,8 @@ function connection() {
 
 function onMessageReceived(topic, strPayload) {
 
-	try {
+
+try {
     if (topic == TWITTER_TO_BRAIN_CHANNEL) {
       logger.log('debug', "On reçoit un tweet de TWITTER");
       messageFromTwitter(JSON.parse(strPayload.toString()));
@@ -76,6 +92,13 @@ function onMessageReceived(topic, strPayload) {
       messageFromArduino(JSON.parse(strPayload.toString()))
     } else {
       logger.log('debug', "On reçoit un message de UI");
+      // Detection du hotword "casque" pour interagir avec Néo
+      if (strPayload.toString().indexOf("casque") > 0) {
+        console.log("hotword détecté");
+        console.log("Envoi de l'ouverture du casque")
+        let strPayLoad = "{\"origin\":\"im-admin\", \"command\":\"move\" }";
+        clientMqttNeo.publish("im/command/helmet",strPayLoad);
+      }
       messageFromUI(strPayload.toString());
     }
   } catch (e){
@@ -104,7 +127,7 @@ function messageFromTwitter(tweet) {
         clientMqtt.publish(BRAIN_TO_ARDUINO_CHANNEL, JSON.stringify(tweet), optionsMqtt);
         logger.log('info', "Le tweet a bien été envoyé");
         console.log("Dans " + process.hrtime());
-      }, 10000);
+      }, 1);
     },
     args: [tweet]});
 
@@ -175,6 +198,7 @@ function messageFromArduino(message) {
       }
     }
 }
+
 
 
 
