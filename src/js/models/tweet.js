@@ -9,7 +9,6 @@ export default class Tweet {
         this.fresh = true;
         this.motion = "KUNG_FU_PANDA";
         this.timestamp = Date.now();
-		this.winner = false;
 		this.sound = "foo";
 		this.isHistorized = true;
   	}
