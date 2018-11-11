@@ -11,6 +11,7 @@ export default class Tweet {
         this.timestamp = Date.now();
 		this.winner = false;
 		this.sound = "foo";
+		this.isHistorized = true;
   	}
 
 	getTweet() {
