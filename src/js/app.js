@@ -26,6 +26,10 @@ let context = new Context();
 let optionsMqtt = {QoS: 2, retain: true};
 let historicTweets = [];
 
+// le pool de traitement {fct: "fonction lancée pour chaque record", args: "arguments passés à la fonction"}
+var pool = [];
+// les records en sortie
+var objectsResult = [];
 
 const UI_TO_BRAIN_CHANNEL = 'lea/ui/brain';
 const TWITTER_TO_BRAIN_CHANNEL = 'lea/twitter/brain';
@@ -91,20 +95,48 @@ function messageFromTwitter(tweet) {
   context.tweetDisplayed = tweet;
   context.isTweetDisplayed = true;
   logger.log('info', JSON.stringify(tweet));
-  setImmediate(() => {
-    clientMqtt.publish(BRAIN_TO_ARDUINO_CHANNEL, JSON.stringify(tweet), optionsMqtt);
-  });
-  
-  setTimeout(() => {
-    logger.log('info', "Le tweet a bien été envoyé");
-  }, 10000);
+
+
+  pool.push({
+    fct:
+    function(objElt) {
+      clientMqtt.publish(BRAIN_TO_ARDUINO_CHANNEL, JSON.stringify(tweet), optionsMqtt);
+      setTimeout(() => {
+        logger.log('info', "Le tweet a bien été envoyé");
+        console.log("Dans " + process.hrtime());
+      }, 10000);
+    },
+    args: [tweet]});
+
+
+
+  pool.push({fct: () => {
+    console.log("finish batch");
+  }});
+
+  execPool();
 }
+
+function execPool() {
+  console.log(pool.length);
+  console.log(!context.isTweetDisplayed);
+  console.log(!context.tweetDisplayed.fresh);
+  if (pool && pool.length > 0){// && (!context.isTweetDisplayed || !context.tweetDisplayed.fresh)) {
+      //setImmediate(() => {
+          let poolElt =  pool.shift();
+          if (poolElt.args) poolElt.fct(...poolElt.args);
+          else poolElt.fct();
+          execPool();
+      //});
+  }
+}
+
 
 function messageFromUI(message) {
   messageFromTwitter(new Tweet(Configuration.TWITTER_USER_NAME, Configuration.USER_TWITTER, message));
 }
 
-
+let firstTime = true;
 function messageFromArduino(message) {
     context.isTweetDisplayed = false;
     let tweet = message.tweet;
@@ -118,38 +150,30 @@ function messageFromArduino(message) {
         tweet.isHistorized = false;
         tweet.fresh = false;
         tweet.motion = null;
-        historicTweets.push(tweet);
+        objectsResult.push(tweet);
       }
     }
 
     // Si des tweets plus récent sont apparu, on les affiche
-/*    logger.log('info', 'context.freshTweets.length %s', context.freshTweets.length);
-    logger.log('info', 'context.freshTweets.length %d', context.freshTweets.length);
-    logger.log('info', context.freshTweets.length);
-    if (context.freshTweets.length > 0) {
-      logger.log('info', JSON.stringify(tweet));
-      let freshTweet = context.freshTweets[0];
-      if (!context.isTweetDisplayed && context.tweetDisplayed != freshTweet) {
-        context.isTweetDisplayed = true;
-        clientMqtt.publish(BRAIN_TO_ARDUINO_CHANNEL, JSON.stringify(freshTweet), optionsMqtt);
-      }
-    }*/
-
     if (!context.isTweetDisplayed) {
       // Si la liste des tweets historique est plus grande, le progamme la tronque
       if (historicTweets.length > 10) {
         historicTweets = historicTweets.slice(0, 10);
       }
-
+      if (objectsResult.length > 10) {
+        objectsResult = objectsResult.slice(0, 10);
+      }
       // Si il existe des tweets historique, le programme les affiche de manière aléatoire
-      if (historicTweets.length > 0) {
-        let historicTweet = historicTweets[Utils.getRandomInt(0, historicTweets.length - 1)];
-        context.isTweetDisplayed = true;
-        logger.log('info', "AAAAAAAAAAaa " + historicTweets.length);
-        setTimeout(() => {
-          logger.log('info', "Le tweet a bien été envoyé");
-          clientMqtt.publish(BRAIN_TO_ARDUINO_CHANNEL, JSON.stringify(historicTweet), optionsMqtt);
-        }, 10000);
+      if (firstTime) {
+        if (objectsResult.length > 0) {
+          var timer_id=setInterval(function(){
+            console.log(objectsResult);
+            let currentTweet = objectsResult[Utils.getRandomInt(0, objectsResult.length - 1)];
+            console.log("TWEET HISTORIQUE " + currentTweet);
+            clientMqtt.publish(BRAIN_TO_ARDUINO_CHANNEL, JSON.stringify(currentTweet), optionsMqtt);
+          },10000);
+        }
+        firstTime = false;
       }
     }
 }
