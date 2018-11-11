@@ -118,9 +118,6 @@ function messageFromTwitter(tweet) {
 }
 
 function execPool() {
-  console.log(pool.length);
-  console.log(!context.isTweetDisplayed);
-  console.log(!context.tweetDisplayed.fresh);
   if (pool && pool.length > 0){// && (!context.isTweetDisplayed || !context.tweetDisplayed.fresh)) {
       //setImmediate(() => {
           let poolElt =  pool.shift();
@@ -165,14 +162,15 @@ function messageFromArduino(message) {
       }
       // Si il existe des tweets historique, le programme les affiche de manière aléatoire
       if (firstTime) {
-        if (objectsResult.length > 0) {
-          var timer_id=setInterval(function(){
+        logger.log('info', "Activation de la queue de message " +objectsResult.length );
+        var timer_id=setInterval(function(){
+          if (objectsResult.length > 0) {
             console.log(objectsResult);
             let currentTweet = objectsResult[Utils.getRandomInt(0, objectsResult.length - 1)];
             console.log("TWEET HISTORIQUE " + currentTweet);
             clientMqtt.publish(BRAIN_TO_ARDUINO_CHANNEL, JSON.stringify(currentTweet), optionsMqtt);
-          },10000);
-        }
+          }
+        },10000);
         firstTime = false;
       }
     }
