@@ -100,8 +100,8 @@ function messageFromTwitter(tweet) {
   pool.push({
     fct:
     function(objElt) {
-      clientMqtt.publish(BRAIN_TO_ARDUINO_CHANNEL, JSON.stringify(tweet), optionsMqtt);
       setTimeout(() => {
+        clientMqtt.publish(BRAIN_TO_ARDUINO_CHANNEL, JSON.stringify(tweet), optionsMqtt);
         logger.log('info', "Le tweet a bien été envoyé");
         console.log("Dans " + process.hrtime());
       }, 10000);
