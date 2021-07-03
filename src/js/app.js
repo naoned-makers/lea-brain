@@ -39,7 +39,7 @@ const BRAIN_TO_ARDUINO_CHANNEL = 'lea/brain/arduino';
 
 
 //on se connecte au broker (localhost) et on suscribe aux command message
-let clientMqtt = mqtt.connect('ws://localhost:3001', {
+let clientMqtt = mqtt.connect('ws://lea.local:3001', {
   clientId: 'lea_brain_' + os.hostname()
 });
 
@@ -54,7 +54,7 @@ function connection() {
     clientMqtt.subscribe(UI_TO_BRAIN_CHANNEL, optionsMqtt);
     clientMqtt.subscribe(TWITTER_TO_BRAIN_CHANNEL, optionsMqtt);
     clientMqtt.subscribe(ARDUINO_TO_BRAIN_CHANNEL, optionsMqtt);
-
+    logger.log('debug', "ENvoie du tweet de départ");
     // Envoi du Tweet de bienvenue
     let tweet = new Tweet('', '', Configuration.TEXT_LEA_START_UP);
     tweet.isHistorized = false;
