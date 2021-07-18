@@ -38,14 +38,17 @@ Configuration.WELCOME_MESSAGE = 'welcomeMessage.txt';
  * Constante représentant les textes des tweets pour arrêter ou démarrer léa
  * Cela représente aussi le texte qu'affiche Léa quand elle est en pause.
  */
-Configuration.USER_TWITTER = '@lea_nmakers';
+Configuration.TWITTER_SCREENNAME = 'lea_nmakers';
+Configuration.USER_TWITTER = '@' + Configuration.TWITTER_SCREENNAME;
+Configuration.TWITTER_USER_NAME = 'leanm';
 Configuration.TWEET_LEA_START = Configuration.USER_TWITTER + ' start';
 Configuration.TWEET_LEA_STOP = Configuration.USER_TWITTER + ' stop';
 
 Configuration.TEXT_LEA_PAUSE = '  Lea est en pause     elle se repose';
 
 Configuration.TEXT_LEA_START = '  Tweetez moi sur                          ' + Configuration.USER_TWITTER;
-//Configuration.TEXT_LEA_START_UP = fs.readFileSync(Configuration.WELCOME_MESSAGE, "utf8"); //' Prete a participer          au          Nantes Maker Campus';
+console.log(fs.readFileSync(Configuration.WELCOME_MESSAGE, "utf8"));
+Configuration.TEXT_LEA_START_UP = fs.readFileSync(Configuration.WELCOME_MESSAGE, "utf8").replace(/[\n\r]+/g, ''); //' Prete a participer          au          Nantes Maker Campus';
 Configuration.TEXT_LEA_DEMO_ON = 'demo on';
 Configuration.TEXT_LEA_DEMO_OFF = 'demo off';
 
